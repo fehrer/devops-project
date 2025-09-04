@@ -1,17 +1,32 @@
+options:
+  logging: CLOUD_LOGGING_ONLY  # envia os logs para o Cloud Logging
+
 steps:
   # Build da imagem Docker
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '--tag'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA'
       - '.'
 
   # Push para Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA'
 
   # Deploy no Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image ${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA \
+          --region ${_REGION} \
+          --platform managed \
+          --allow-unauthenticated
+
+# Conta de serviço do build (opcional)
+serviceAccount: projects/${PROJECT_ID}/serviceAccounts/${_BUILD_SERVICE_ACCOUNT}
