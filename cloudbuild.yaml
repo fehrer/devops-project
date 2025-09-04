@@ -1,5 +1,7 @@
 options:
-  logging: CLOUD_LOGGING_ONLY
+  logging: CLOUD_LOGGING_ONLY  # envia os logs para o Cloud Logging
+  # Se quiser usar bucket regional (opcional):
+  # defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
 
 steps:
   # Build da imagem Docker
@@ -18,13 +20,18 @@ steps:
 
   # Deploy no Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'deploy'
-      - '${_SERVICE_NAME}'
-      - '--image'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
-      - '--region'
-      - '${_REGION}'
-      - '--platform'
-      - 'managed'
+      - '-c'
+      - |
+        gcloud run deploy ${_SERVICE_NAME} \
+          --image ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA \
+          --region ${_REGION} \
+          --platform managed \
+          --allow-unauthenticated
+
+# Define a conta de serviço do build (opcional)
+serviceAccount: projects/${PROJECT_ID}/serviceAccounts/${_BUILD_SERVICE_ACCOUNT}
+
+# Substitua as variáveis _REGION, _REPO, _SERVICE_NAME e _BUILD_SERVICE_ACCOUNT
+# por valores corretos ou defina como substitutions.
