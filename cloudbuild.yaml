@@ -1,7 +1,5 @@
 options:
   logging: CLOUD_LOGGING_ONLY  # envia os logs para o Cloud Logging
-  # Se quiser usar bucket regional (opcional):
-  # defaultLogsBucketBehavior: REGIONAL_USER_OWNED_BUCKET
 
 steps:
   # Build da imagem Docker
@@ -9,14 +7,14 @@ steps:
     args:
       - 'build'
       - '--tag'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA'
       - '.'
 
   # Push para Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA'
+      - '${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA'
 
   # Deploy no Cloud Run
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -25,13 +23,10 @@ steps:
       - '-c'
       - |
         gcloud run deploy ${_SERVICE_NAME} \
-          --image ${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_SERVICE_NAME}:$COMMIT_SHA \
+          --image ${_REGION}-docker.pkg.dev/${PROJECT_ID}/devops-repo/${_SERVICE_NAME}:$COMMIT_SHA \
           --region ${_REGION} \
           --platform managed \
           --allow-unauthenticated
 
-# Define a conta de serviço do build (opcional)
+# Conta de serviço do build (opcional)
 serviceAccount: projects/${PROJECT_ID}/serviceAccounts/${_BUILD_SERVICE_ACCOUNT}
-
-# Substitua as variáveis _REGION, _REPO, _SERVICE_NAME e _BUILD_SERVICE_ACCOUNT
-# por valores corretos ou defina como substitutions.
