@@ -4,7 +4,7 @@ const port = process.env.PORT || 8080;
 
 
 app.get('/', (req, res) => {
-  res.send('Hello from Cloud Run + Cloud Build!');
+  res.send('Hello from Cloud Run + Cloud Build! Google Cloud é Massa! vários aprendizados');
 });
 
 
